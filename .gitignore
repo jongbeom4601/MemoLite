@@ -1,0 +1,19 @@
+# .NET / Visual Studio build outputs
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Published application, test reports and temporary fixtures
+/artifacts/
+/tmp/
+TestResults/
+*.log
+
+# Local environment and tool configuration
+.env
+.env.*
+!.env.example
+/.codex/
+/.aws/

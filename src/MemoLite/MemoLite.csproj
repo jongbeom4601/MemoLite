@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.22000.0</TargetPlatformMinVersion>
+    <RootNamespace>MemoLite</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWinUI>true</UseWinUI>
+    <WinUISDKReferences>false</WinUISDKReferences>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <!-- PRI resource generation is needed even for unpackaged Release builds. -->
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <AppxPackage>false</AppxPackage>
+    <EnableWinAppRunSupport>false</EnableWinAppRunSupport>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
+    <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.6.4" />
+    <ProjectReference Include="..\MemoLite.Core\MemoLite.Core.csproj" />
+    <Content Include="Assets\AppIcon.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <!-- WinUI generates these after the SDK collects ordinary content items.
+       PRI references the XBF files; shipping the PRI alone cannot load the UI. -->
+  <Target Name="IncludeCompiledXamlInPublish" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <_CompiledXamlForPublish Include="$(TargetDir)**\*.xbf" />
+      <ResolvedFileToPublish Remove="@(_CompiledXamlForPublish)" />
+      <ResolvedFileToPublish Include="@(_CompiledXamlForPublish)">
+        <RelativePath>%(_CompiledXamlForPublish.RecursiveDir)%(_CompiledXamlForPublish.Filename)%(_CompiledXamlForPublish.Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+    <Error Condition="!Exists('$(TargetDir)App.xbf') Or !Exists('$(TargetDir)MainWindow.xbf')"
+           Text="Compiled WinUI XAML resources are missing. Build before publishing." />
+  </Target>
+</Project>

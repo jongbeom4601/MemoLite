@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/MemoLite.Core/MemoLite.Core.csproj" />
+  <Project Path="src/MemoLite/MemoLite.csproj" />
+  <Project Path="tests/MemoLite.Core.Tests/MemoLite.Core.Tests.csproj" />
+</Solution>
