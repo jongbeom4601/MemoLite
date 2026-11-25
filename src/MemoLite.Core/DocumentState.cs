@@ -12,6 +12,8 @@ public sealed class DocumentState(string name)
     public TextEncodingKind Encoding { get; set; } = TextEncodingKind.Utf8;
     public string Newline { get; private set; } = "\r\n";
     public string? Digest { get; private set; }
+    /// <summary>The organized memo this tab updates when 정리 runs again.</summary>
+    public string? LibraryId { get; set; }
     public bool IsDirty => !string.Equals(Text, SavedText, StringComparison.Ordinal);
     public string DisplayName
     {
@@ -43,8 +45,31 @@ public sealed class DocumentState(string name)
         Encoding = encoding;
     }
 
+    /// <summary>
+    /// An untitled draft kept in the library no longer needs a save prompt until it changes again.
+    /// <paramref name="keptText"/> is the exact text written, so edits made during the write stay modified.
+    /// </summary>
+    public void MarkKeptInLibrary(string libraryId, string keptText)
+    {
+        LibraryId = libraryId;
+        if (Path is null) SavedText = TextFiles.Normalize(keptText);
+    }
+
+    /// <summary>Unlinks the library memo. An untitled draft returns to the unsaved baseline so closing prompts again.</summary>
+    public void ForgetLibrary()
+    {
+        LibraryId = null;
+        if (Path is null) SavedText = "";
+    }
+
+    public static DocumentState FromLibrary(string libraryId, string text)
+    {
+        string normalized = TextFiles.Normalize(text);
+        return new(UntitledName) { Text = normalized, SavedText = normalized, LibraryId = libraryId };
+    }
+
     public SessionDocument Snapshot(int selectionStart = 0, int selectionLength = 0) =>
-        new(Name, Path, Text, SavedText, Encoding, Newline, Digest, selectionStart, selectionLength);
+        new(Name, Path, Text, SavedText, Encoding, Newline, Digest, selectionStart, selectionLength, LibraryId);
 
     public static DocumentState Restore(SessionDocument saved) => new(saved.Path is null ? UntitledName : saved.Name)
     {
@@ -53,7 +78,8 @@ public sealed class DocumentState(string name)
         SavedText = TextFiles.Normalize(saved.SavedText),
         Encoding = saved.Encoding,
         Newline = saved.Newline,
-        Digest = saved.Digest
+        Digest = saved.Digest,
+        LibraryId = saved.LibraryId
     };
 
     public static bool SamePath(string? first, string? second) => first is not null && second is not null &&

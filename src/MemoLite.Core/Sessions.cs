@@ -4,7 +4,7 @@ namespace MemoLite.Core;
 
 public sealed record SessionDocument(
     string Name, string? Path, string Text, string SavedText, TextEncodingKind Encoding,
-    string Newline, string? Digest, int SelectionStart = 0, int SelectionLength = 0);
+    string Newline, string? Digest, int SelectionStart = 0, int SelectionLength = 0, string? LibraryId = null);
 
 public sealed record SessionSnapshot(
     // NextUntitledNumber is retained for compatibility with existing recovery files.

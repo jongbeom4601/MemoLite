@@ -57,16 +57,37 @@ public sealed partial class MainWindow : Window
         AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"));
         BuildMenus();
         AddShortcuts();
+        InitializeLibrary();
         statusTimer.Tick += (_, _) => { statusTimer.Stop(); Refresh(); };
         sessionTimer.Tick += OnSessionTimer;
         Tabs.TabItemsChanged += (_, _) => ScheduleSessionSave();
         Tabs.Loaded += OnTabsLoaded;
         Tabs.AddHandler(UIElement.PointerWheelChangedEvent, new PointerEventHandler(OnTabWheel), true);
         Root.PreviewKeyDown += OnEditorKeys;
+        WorkspaceGrid.SizeChanged += (_, _) => AlignTitleBarSearch();
+        TitleBarContentHost.SizeChanged += (_, _) => AlignTitleBarSearch();
+        TitleBarContentHost.Loaded += (_, _) => AlignTitleBarSearch();
         Root.Loaded += OnLoaded;
         AppWindow.Closing += OnWindowClosing;
         Closed += (_, _) => { statusTimer.Stop(); sessionTimer.Stop(); sessionFile?.Dispose(); };
         NewDocument();
+    }
+
+    private void AlignTitleBarSearch()
+    {
+        if (!TitleBarContentHost.IsLoaded || WorkspaceGrid.ActualWidth <= 0) return;
+
+        double gap = WorkspaceGrid.ColumnSpacing;
+        int columns = WorkspaceGrid.ColumnDefinitions.Count;
+        double columnWidth = (WorkspaceGrid.ActualWidth - (columns - 1) * gap) / columns;
+        double searchLeft = WorkspaceGrid.Margin.Left + 2 * (columnWidth + gap);
+        double contentLeft = TitleBarContentHost.TransformToVisual(Root).TransformPoint(new Point()).X;
+        double inset = Math.Max(0, searchLeft - contentLeft);
+        double available = TitleBarContentHost.ActualWidth - inset - WorkspaceGrid.Margin.Right;
+        double searchWidth = 7 * columnWidth + 6 * gap;
+
+        TitleBarSearchHost.Margin = new Thickness(inset, 0, WorkspaceGrid.Margin.Right, 0);
+        TitleBarSearchHost.Width = Math.Max(0, Math.Min(searchWidth, available));
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -99,6 +120,7 @@ public sealed partial class MainWindow : Window
         await RunAsync(async () =>
         {
             await InitializeSessionAsync();
+            await LoadLibraryAsync();
             foreach (string path in args) await OpenFileAsync(path);
             await PersistSessionAsync();
         });
@@ -182,6 +204,7 @@ public sealed partial class MainWindow : Window
         Bind(VirtualKey.O, ctrl, OpenDialogAsync);
         Bind(VirtualKey.S, ctrl, async () => { if (Active is { } doc) await SaveAsync(doc); });
         Bind(VirtualKey.S, ctrl | VirtualKeyModifiers.Shift, async () => { if (Active is { } doc) await SaveAsync(doc, true); });
+        Bind(VirtualKey.F, ctrl, () => { FocusSearch(); return Task.CompletedTask; });
         Bind(VirtualKey.W, ctrl, async () => { if (Active is { } doc) await CloseDocumentAsync(doc); });
         Bind(VirtualKey.Z, ctrl | VirtualKeyModifiers.Shift, () => { Active?.Editor.Redo(); return Task.CompletedTask; });
         Bind(VirtualKey.Number0, ctrl, () => { zoom = 100; ChangeZoom(0); return Task.CompletedTask; });
@@ -273,7 +296,7 @@ public sealed partial class MainWindow : Window
         editor.TextChanged += (_, _) =>
         {
             state.Text = TextFiles.Normalize(editor.Text);
-            UpdateHeader(doc); ScheduleStatus(); ScheduleSessionSave();
+            UpdateHeader(doc); ScheduleStatus(); ScheduleSessionSave(); ScheduleSearchRefresh();
         };
         editor.SelectionChanged += (_, _) => { ScheduleStatus(); ScheduleSessionSave(); };
         editor.AddHandler(UIElement.PointerWheelChangedEvent, new PointerEventHandler((_, e) =>
@@ -458,6 +481,13 @@ public sealed partial class MainWindow : Window
         foreach (var file in await picker.PickMultipleFilesAsync()) await OpenFileAsync(file.Path);
     }
 
+    /// <summary>
+    /// The active tab if opening a document may replace it: untitled, empty, and unmodified.
+    /// An emptied library draft is still modified and keeps its undo history, so it is never replaced.
+    /// </summary>
+    private EditorDocument? ReplaceableBlank() =>
+        Active is { State: { Path: null, Text.Length: 0, IsDirty: false } } blank ? blank : null;
+
     private async Task<EditorDocument?> OpenFileAsync(string path)
     {
         path = Path.GetFullPath(path);
@@ -466,7 +496,7 @@ public sealed partial class MainWindow : Window
         try
         {
             var loaded = await TextFiles.ReadAsync(path);
-            var blank = Active is { State.Path: null, State.Text.Length: 0 } untouched ? untouched : null;
+            var blank = ReplaceableBlank();
             var doc = NewDocument(path, loaded);
             if (blank is not null) RemoveDocument(blank);
             return doc;

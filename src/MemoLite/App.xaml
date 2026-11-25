@@ -9,7 +9,7 @@
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
                     <SolidColorBrush x:Key="EditorSurfaceBrush" Color="#FFFFFF" />
-                    <SolidColorBrush x:Key="SidebarSurfaceBrush" Color="#F7F8FA" />
+                    <SolidColorBrush x:Key="SidebarSurfaceBrush" Color="#EDF3FC" />
                     <SolidColorBrush x:Key="ShellStrokeBrush" Color="#E4E7EC" />
                     <SolidColorBrush x:Key="ShellSecondaryTextBrush" Color="#78818E" />
                     <SolidColorBrush x:Key="ShellAccentBrush" Color="#396BBA" />
@@ -18,7 +18,7 @@
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Default">
                     <SolidColorBrush x:Key="EditorSurfaceBrush" Color="#25272D" />
-                    <SolidColorBrush x:Key="SidebarSurfaceBrush" Color="#202228" />
+                    <SolidColorBrush x:Key="SidebarSurfaceBrush" Color="#222A38" />
                     <SolidColorBrush x:Key="ShellStrokeBrush" Color="#393D46" />
                     <SolidColorBrush x:Key="ShellSecondaryTextBrush" Color="#9DA5B3" />
                     <SolidColorBrush x:Key="ShellAccentBrush" Color="#A2C2FF" />
@@ -52,7 +52,7 @@
             <Style x:Key="MemoEditorStyle" TargetType="TextBox">
                 <Setter Property="FontFamily" Value="Malgun Gothic" />
                 <Setter Property="FontSize" Value="16" />
-                <Setter Property="Padding" Value="28,24" />
+                <Setter Property="Padding" Value="16,24" />
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="CornerRadius" Value="0" />
                 <Setter Property="Background" Value="{ThemeResource EditorSurfaceBrush}" />

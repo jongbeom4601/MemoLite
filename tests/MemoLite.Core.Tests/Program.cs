@@ -138,6 +138,7 @@ try
         Check(first != await TextFiles.FingerprintAsync(path), "Edit not detected");
     });
     await SessionChecks.RunAsync(directory, Test, Check);
+    await LibraryChecks.RunAsync(directory, Test, Check);
 }
 finally { Directory.Delete(directory, recursive: true); }
 Console.WriteLine($"{passed} passed, {failed} failed");

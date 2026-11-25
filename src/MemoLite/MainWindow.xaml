@@ -8,67 +8,130 @@
             <RowDefinition Height="48" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="248" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <TitleBar x:Name="AppTitleBar" Title="MemoLite" Grid.ColumnSpan="2">
+        <TitleBar x:Name="AppTitleBar" Title="MemoLite">
             <TitleBar.IconSource><SymbolIconSource Symbol="Edit" /></TitleBar.IconSource>
             <TitleBar.Resources>
                 <HorizontalAlignment x:Key="TitleBarContentHorizontalAlignment">Stretch</HorizontalAlignment>
             </TitleBar.Resources>
             <TitleBar.Content>
-                <Grid x:Name="TitleBarSearchHost" Height="34" MaxWidth="640" Margin="64,0,24,0"
-                      HorizontalAlignment="Stretch" VerticalAlignment="Center" ColumnSpacing="8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Border Background="{ThemeResource EditorSurfaceBrush}" CornerRadius="8"
-                            BorderBrush="{ThemeResource ShellStrokeBrush}" BorderThickness="1"
-                            TitleBar.IsDragRegion="False">
-                        <Grid ColumnSpacing="10" Padding="12,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="18" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <FontIcon Glyph="&#xE721;" FontSize="15" Foreground="{ThemeResource ShellSecondaryTextBrush}" />
-                            <TextBox x:Name="TitleBarSearchBox" Grid.Column="1" PlaceholderText="메모 제목이나 내용 검색"
-                                     BorderThickness="0" Background="Transparent" Padding="0,4" MinHeight="0"
-                                     VerticalAlignment="Center" AutomationProperties.Name="메모 검색">
-                                <TextBox.Resources>
-                                    <SolidColorBrush x:Key="TextControlBackground" Color="Transparent" />
-                                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent" />
-                                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent" />
-                                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
-                                    <Thickness x:Key="TextControlBorderThicknessFocused">0</Thickness>
-                                </TextBox.Resources>
-                            </TextBox>
-                            <Border Grid.Column="2" Padding="7,2" CornerRadius="4" VerticalAlignment="Center"
-                                    Background="{ThemeResource ShellMutedFillBrush}">
-                                <TextBlock Text="검색" FontSize="10" Foreground="{ThemeResource ShellSecondaryTextBrush}" />
-                            </Border>
-                        </Grid>
-                    </Border>
-                    <Button Grid.Column="1" Padding="12,0" CornerRadius="8" MinWidth="0" VerticalAlignment="Stretch"
-                            Style="{StaticResource AccentButtonStyle}" AutomationProperties.Name="정리"
-                            TitleBar.IsDragRegion="False">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Viewbox Width="14" Height="14">
-                                <SymbolIcon Symbol="AllApps" />
-                            </Viewbox>
-                            <TextBlock Text="정리" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
-                        </StackPanel>
-                    </Button>
+                <Grid x:Name="TitleBarContentHost" HorizontalAlignment="Stretch">
+                    <Grid x:Name="TitleBarSearchHost" Height="32" Width="480" HorizontalAlignment="Left"
+                          VerticalAlignment="Center" ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border Background="{ThemeResource EditorSurfaceBrush}" CornerRadius="8"
+                                BorderBrush="{ThemeResource ShellStrokeBrush}" BorderThickness="1"
+                                TitleBar.IsDragRegion="False">
+                            <Grid ColumnSpacing="8" Padding="16,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <FontIcon Glyph="&#xE721;" FontSize="15" Foreground="{ThemeResource ShellSecondaryTextBrush}" />
+                                <TextBox x:Name="TitleBarSearchBox" Grid.Column="1" PlaceholderText="메모 제목이나 내용 검색"
+                                         BorderThickness="0" Background="Transparent" Padding="0,4" MinHeight="0"
+                                         VerticalAlignment="Center" AutomationProperties.Name="메모 검색">
+                                    <TextBox.Resources>
+                                        <SolidColorBrush x:Key="TextControlBackground" Color="Transparent" />
+                                        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent" />
+                                        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent" />
+                                        <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
+                                        <Thickness x:Key="TextControlBorderThicknessFocused">0</Thickness>
+                                    </TextBox.Resources>
+                                </TextBox>
+                                <Border Grid.Column="2" Padding="7,2" CornerRadius="4" VerticalAlignment="Center"
+                                        Background="{ThemeResource ShellMutedFillBrush}">
+                                    <TextBlock Text="Ctrl+F" FontSize="10" Foreground="{ThemeResource ShellSecondaryTextBrush}" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <Button x:Name="OrganizeButton" Grid.Column="1" Padding="8,0" CornerRadius="8" MinWidth="80" VerticalAlignment="Stretch"
+                                Style="{StaticResource AccentButtonStyle}" AutomationProperties.Name="정리"
+                                ToolTipService.ToolTip="열린 탭을 주제별로 정리된 메모에 모읍니다"
+                                TitleBar.IsDragRegion="False">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Viewbox Width="14" Height="14">
+                                    <SymbolIcon Symbol="AllApps" />
+                                </Viewbox>
+                                <TextBlock Text="정리" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
                 </Grid>
             </TitleBar.Content>
         </TitleBar>
 
-        <!-- Reserved space for future categories. -->
-        <Border Grid.Row="1" Margin="16,8,12,16"
-                Background="{ThemeResource SidebarSurfaceBrush}" CornerRadius="12" />
+        <Grid x:Name="WorkspaceGrid" Grid.Row="1" Margin="24,8,24,24" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="1" Grid.Column="1">
-            <Border Margin="0,8,16,16" CornerRadius="12"
+            <Border Grid.ColumnSpan="3"
+                    Background="{ThemeResource SidebarSurfaceBrush}" CornerRadius="12">
+                <Grid Padding="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Spacing="16">
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Viewbox Width="16" Height="16">
+                                <SymbolIcon x:Name="SidebarIcon" Symbol="AllApps" Foreground="{ThemeResource ShellAccentBrush}" />
+                            </Viewbox>
+                            <TextBlock x:Name="SidebarTitle" Grid.Column="1" Text="정리된 메모" FontSize="16" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                            <TextBlock x:Name="SidebarCount" Grid.Column="2" FontSize="12" VerticalAlignment="Center"
+                                       Foreground="{ThemeResource ShellSecondaryTextBrush}" />
+                        </Grid>
+                        <Border Height="1" Background="{ThemeResource ShellStrokeBrush}" />
+                        <TextBlock x:Name="SidebarNotice" Visibility="Collapsed" FontSize="12" TextWrapping="Wrap"
+                                   Foreground="{ThemeResource ShellAccentBrush}" Margin="0,-8,0,0" />
+                    </StackPanel>
+                    <ScrollViewer x:Name="SidebarScroller" Grid.Row="1" Margin="-8,8,-8,0" Visibility="Collapsed"
+                                  HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="SidebarList" Spacing="2" Padding="0,0,0,8" />
+                    </ScrollViewer>
+                    <ScrollViewer x:Name="SidebarEmptyState" Grid.Row="1" HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,64,0,0" VerticalAlignment="Top" Spacing="16">
+                            <Border Width="64" Height="64" CornerRadius="18" HorizontalAlignment="Center"
+                                    Background="{ThemeResource ShellSelectedBrush}">
+                                <Grid Width="36" Height="34" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <Path Data="M3,9 C3,7.3 4.3,6 6,6 H14 L18,10 H30 C31.7,10 33,11.3 33,13 V27 C33,28.7 31.7,30 30,30 H6 C4.3,30 3,28.7 3,27 Z"
+                                          Stroke="{ThemeResource ShellAccentBrush}" StrokeThickness="1.5" />
+                                    <Path Data="M10,17 H26 M10,22 H22"
+                                          Stroke="{ThemeResource ShellAccentBrush}" StrokeThickness="1.5" />
+                                </Grid>
+                            </Border>
+                            <StackPanel Spacing="8">
+                                <TextBlock x:Name="SidebarEmptyTitle" Text="정리한 메모가&#x0a;여기에 모여요" FontSize="14" FontWeight="SemiBold"
+                                           TextAlignment="Center" TextWrapping="Wrap" LineHeight="22" />
+                                <TextBlock x:Name="SidebarEmptyDescription" Text="주제별로 모은 메모를&#x0a;이곳에서 찾아볼 수 있어요." FontSize="12"
+                                           Foreground="{ThemeResource ShellSecondaryTextBrush}"
+                                           TextAlignment="Center" TextWrapping="Wrap" LineHeight="20" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="3" Grid.ColumnSpan="9" CornerRadius="12"
                     Background="{ThemeResource EditorSurfaceBrush}"
                     BorderBrush="{ThemeResource ShellStrokeBrush}" BorderThickness="1">
                 <Grid>
@@ -82,7 +145,7 @@
                              CanDragTabs="True" AllowDrop="True"
                              AddTabButtonClick="OnAddTab" TabCloseRequested="OnTabClose"
                              SelectionChanged="OnTabSelectionChanged" />
-                    <Border x:Name="StatusBar" Grid.Row="1" Padding="18,9" BorderThickness="0,1,0,0"
+                    <Border x:Name="StatusBar" Grid.Row="1" Padding="16,8" BorderThickness="0,1,0,0"
                             BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -90,9 +153,9 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock x:Name="PositionStatus" FontSize="12"
+                            <TextBlock x:Name="PositionStatus" FontSize="12" TextTrimming="CharacterEllipsis"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            <TextBlock x:Name="FormatStatus" Grid.Column="1" Margin="20,0"
+                            <TextBlock x:Name="FormatStatus" Grid.Column="1" Margin="16,0"
                                        FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             <TextBlock x:Name="ZoomStatus" Grid.Column="2" FontSize="12"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
