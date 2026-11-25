@@ -1,5 +1,7 @@
 # MemoLite · WinUI 3
 
+[![CI](https://github.com/jongbeom4601/MemoLite/actions/workflows/ci.yml/badge.svg)](https://github.com/jongbeom4601/MemoLite/actions/workflows/ci.yml)
+
 Windows 11용 로컬 텍스트 편집기입니다. C# / .NET 10 / WinUI 3로 새로 구현했습니다. 시스템 라이트·다크 테마와 Mica 배경, Windows 기본 탭·메뉴·파일 대화상자를 사용합니다.
 
 프로그램 이름과 창 제어 버튼 사이의 제목 표시줄에 검색창과 `정리` 버튼이 있습니다. 나머지 제목 표시줄 영역은 창 드래그에 사용할 수 있습니다. 문서 작성과 파일 관리는 중앙 메모장의 메뉴와 단축키를 사용합니다.
@@ -117,9 +119,28 @@ dotnet run --project tests/MemoLite.Core.Tests/MemoLite.Core.Tests.csproj -c Rel
 .\tests\Verify.ps1
 ```
 
-핵심 로직 테스트는 40개이며, 인코딩·줄바꿈 왕복, 저장 실패 시 원본 보존, 세션 복원·창별 분리·손상 기록 보존 등을 검사합니다. `Verify.ps1`는 실제 WinUI 컨트롤 검증에 더해, 수정한 탭이 있는 앱을 종료한 뒤 별도 프로세스로 재실행하여 원본 파일 보존·미저장 내용·탭 순서·선택 영역·보기 설정 복원과 탭 제거 시 저장 확인을 검사합니다. 테스트용 세션은 사용자 세션과 분리됩니다. 또한 빈 폴더에 Release를 게시하고 실행 파일과 XAML 실행 리소스(`App.xbf`, `MainWindow.xbf`, `MemoLite.pri`) 포함 여부를 검사합니다. 결과는 `artifacts/verification`에 남습니다. 자동 검증 진입점은 Release 실행 파일에 포함되지 않습니다.
+핵심 로직 테스트는 54개이며, 인코딩·줄바꿈 왕복, 저장 실패 시 원본 보존, 세션 복원·창별 분리·손상 기록 보존 등을 검사합니다. `Verify.ps1`는 실제 WinUI 컨트롤 검증에 더해, 수정한 탭이 있는 앱을 종료한 뒤 별도 프로세스로 재실행하여 원본 파일 보존·미저장 내용·탭 순서·선택 영역·보기 설정 복원과 탭 제거 시 저장 확인을 검사합니다. 테스트용 세션은 사용자 세션과 분리됩니다. 또한 빈 폴더에 Release를 게시하고 실행 파일과 XAML 실행 리소스(`App.xbf`, `MainWindow.xbf`, `MemoLite.pri`) 포함 여부를 검사합니다. 결과는 `artifacts/verification`에 남습니다. 자동 검증 진입점은 Release 실행 파일에 포함되지 않습니다.
 
 Debug 실행 파일은 `--profile-tabs "보고서 절대 경로"` 인수로 새 탭 성능을 측정할 수 있습니다. 사용자 세션과 분리한 임시 세션에서 +/Ctrl+N의 생성 경로와 장문 메모 복원 기록이 겹치는 상황을 검사하며, 구간별 시간과 화면 스레드 실행 횟수를 기록합니다. 이번 변경 전후 측정은 `artifacts/verification/tabs-before.txt`, `tabs-after.txt`에 있습니다. 이 값은 해당 PC의 합성 부하 측정이며 모든 간헐 지연을 재현한 결과는 아닙니다.
+
+## 자동화 빌드와 배포 (GitHub Actions)
+
+| 워크플로 | 실행 시점 | 하는 일 | 결과물 |
+| --- | --- | --- | --- |
+| [`ci.yml`](.github/workflows/ci.yml) | 모든 브랜치 push, 수동 실행 | Core 테스트 → `build.bat`로 Release 게시 | `MemoLite-win-x64`(실행 폴더), `build-and-test-logs`(테스트·빌드 로그) |
+| 〃 `ui-checks` 작업 | 위 작업 성공 후 | `tests/Verify.ps1` 전체 실행 | `ui-check-logs` |
+| [`release.yml`](.github/workflows/release.yml) | `v*` 태그 push | Core 테스트 → 게시 → zip을 GitHub Release에 첨부 | `MemoLite-<태그>-win-x64.zip` |
+
+- 결과물은 Actions 실행 화면 아래쪽 **Artifacts**에서 내려받습니다.
+- `ui-checks`는 숨긴 창을 띄워 검사합니다. GitHub 호스트 러너에서 창을 띄우지 못할 수 있어, 실패해도 전체 CI를 실패로 만들지 않고 결과만 남깁니다.
+- 배포할 때는 태그를 붙여 push합니다.
+
+```powershell
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+`global.json`은 .NET 10 SDK(10.0.100 이상)를 사용하도록 고정하고, `.gitattributes`는 팀원마다 다른 줄바꿈 설정으로 생기는 diff를 막습니다.
 
 ## 구성
 

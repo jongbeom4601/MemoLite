@@ -1,0 +1,16 @@
+# Store text as LF in the repository and check it out as CRLF on every machine,
+# so teammates' editors and Git settings do not produce whole-file diffs.
+* text=auto eol=crlf
+
+# cmd.exe can misread labels in LF batch files.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# YAML for GitHub Actions is read the same either way; keep LF for web editors.
+*.yml text eol=lf
+*.yaml text eol=lf
+
+*.ico binary
+*.png binary
+*.jpg binary
+*.pdf binary

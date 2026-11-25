@@ -1,0 +1,115 @@
+name: CI
+
+# Every push and pull request builds the app, runs the Core tests, and keeps the
+# logs and the published app as downloadable artifacts (course deliverable:
+# automated build log). Pull request runs test the merge with the base branch.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: pwsh
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-and-test:
+    name: Build and Core tests
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Core tests
+        run: |
+          # Korean test names must survive the redirected console.
+          [Console]::OutputEncoding = [Text.Encoding]::UTF8
+          New-Item -ItemType Directory -Force -Path logs | Out-Null
+          dotnet run --project tests/MemoLite.Core.Tests/MemoLite.Core.Tests.csproj -c Release 2>&1 |
+            Tee-Object -FilePath logs/core-tests.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Core tests failed.' }
+
+      - name: Publish app (build.bat)
+        run: |
+          [Console]::OutputEncoding = [Text.Encoding]::UTF8
+          & ./build.bat 2>&1 | Tee-Object -FilePath logs/build.txt
+          if ($LASTEXITCODE -ne 0) { throw 'build.bat failed.' }
+
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: MemoLite-win-x64
+          path: artifacts/MemoLite
+          if-no-files-found: error
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-and-test-logs
+          path: logs
+
+  ui-checks:
+    name: UI smoke and session checks
+    runs-on: windows-latest
+    timeout-minutes: 30
+    needs: build-and-test
+    # The WinUI checks open a hidden window. Hosted runners may not provide a
+    # desktop for that, so this job reports its result without failing CI.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', 'global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Verify.ps1
+        run: |
+          [Console]::OutputEncoding = [Text.Encoding]::UTF8
+          New-Item -ItemType Directory -Force -Path logs | Out-Null
+          try {
+            & ./tests/Verify.ps1 *>&1 | Tee-Object -FilePath logs/verify.txt
+          }
+          catch {
+            # A terminating error skips Tee-Object; keep the reason in the downloadable log.
+            "FAIL $($_ | Out-String)" | Add-Content -Path logs/verify.txt -Encoding utf8
+            throw
+          }
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-check-logs
+          path: |
+            logs
+            artifacts/verification/*.txt
+          if-no-files-found: ignore

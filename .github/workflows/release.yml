@@ -1,0 +1,66 @@
+name: Release
+
+# Pushing a tag such as v0.2.0 tests, publishes, and attaches a ready-to-run
+# zip to a GitHub Release (course extra: deployment by URL).
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: pwsh
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # The tag reaches scripts only as an environment variable, never as script text.
+  TAG: ${{ github.ref_name }}
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Validate tag
+        run: |
+          # Letters, digits, '.', '-' only: safe as a Windows file name and a release name.
+          if ($env:TAG -notmatch '^v[0-9][0-9A-Za-z.-]*$') { throw "Unsupported release tag: $env:TAG" }
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Core tests
+        run: |
+          [Console]::OutputEncoding = [Text.Encoding]::UTF8
+          dotnet run --project tests/MemoLite.Core.Tests/MemoLite.Core.Tests.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw 'Core tests failed.' }
+
+      - name: Publish app (build.bat)
+        run: |
+          & ./build.bat
+          if ($LASTEXITCODE -ne 0) { throw 'build.bat failed.' }
+
+      - name: Zip
+        run: |
+          $zip = "MemoLite-$($env:TAG)-win-x64.zip"
+          Compress-Archive -Path artifacts/MemoLite/* -DestinationPath $zip
+          "ZIP=$zip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = @"
+          Windows 11 x64용 MemoLite입니다.
+          zip을 풀고 폴더 안의 MemoLite.exe를 실행하세요. 폴더 전체가 있어야 실행됩니다.
+          "@
+          # --verify-tag stops publication if the tag was deleted after checkout,
+          # instead of recreating it at another commit.
+          gh release create $env:TAG $env:ZIP --verify-tag --title "MemoLite $($env:TAG)" --notes $notes
+          if ($LASTEXITCODE -ne 0) { throw 'gh release create failed.' }
